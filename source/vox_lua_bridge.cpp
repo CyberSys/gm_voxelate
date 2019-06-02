@@ -46,22 +46,13 @@ Vector elua_getVector(lua_State* state, int index) {
 
 //Can't figure out how to push vectors without crashing the game when they get GC'd
 void elua_pushVector(lua_State* state, Vector v) {
-	LUA->PushSpecial(SPECIAL_GLOB);
-	LUA->GetField(-1, "Vector");
-	LUA->Remove(-2);
-	LUA->PushNumber(v.x);
-	LUA->PushNumber(v.y);
-	LUA->PushNumber(v.z);
-	LUA->Call(3, 1);
-
-	/*
-	GarrysMod::Lua::UserData* ud = (UserData*)(LUA->NewUserdata(sizeof(UserData)));
-	ud->type = Type::VECTOR;
-	ud->data = new Vector(v);
-
-	LUA->CreateMetaTableType("Vector", Type::VECTOR);
-	LUA->SetMetaTable(-2);
-	*/
+	void* _UserData = (void*)LUA->NewUserData(20);
+	*(char*)((unsigned int)_Userdata + 0x4) = Type::VECTOR;
+	**(unsigned int**)_UserData = ((unsigned int)_UserData + 0x4);
+	if (LUA->PushMetaTable(Type::VECTOR))
+		LUA->SetMetaTable(-2);
+	
+	**(Vector**)_UserData = v;
 }
 
 bool config_bool(lua_State* state, const char* name, bool default_value) {
